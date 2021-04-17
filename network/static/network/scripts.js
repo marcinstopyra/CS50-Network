@@ -32,11 +32,13 @@ function displayPosts(section) {
                             </div>`;
         document.querySelector('#posts-view').append(element);
         }
-    }).then(document.querySelectorAll('.post-creator').forEach(profileLink => {
+    })
+    
+    document.querySelectorAll('.post-creator').forEach(profileLink => {
         profileLink.onclick = function() {
             check(this.dataset.creator);
         }   
-    }));
+    });
 }
 
 function displayProfile(requested_user) {
