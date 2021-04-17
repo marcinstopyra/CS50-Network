@@ -1,0 +1,36 @@
+#newPost-display {
+    display: none;
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(202, 196, 196);
+    border-radius: 10px;
+    padding: 15px 15px 15px 15px;
+}
+
+textarea {
+    resize: none;
+    width: 100%;
+    height: 100px;
+    border-radius: 5px;
+}
+
+#newPostBtn {
+    text-align: right;
+}
+
+.nav-link {
+    cursor: pointer !important;
+}
+
+#post-container {
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(202, 196, 196);
+    border-radius: 10px;
+    padding: 15px 15px 15px 15px;
+}
+
+#post-time {
+    font-size: small;
+    color: grey;
+}

@@ -1,0 +1,19 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+    <div class="container-md" id="newPost-display">
+        <h3><b>New Post</b></h3>
+        <form id='new-post-form' method="POST">
+            {% csrf_token %}
+            <textarea id='post-text' placeholder="Your new post..." cols=50 rows=5></textarea>
+            <button type="submit" id="newPost-Btn" class="btn btn-outline-secondary">Post</button>
+        </form>
+    </div>
+    {% endif %}
+
+<div id='posts-view'></div>
+
+
+
+{% endblock %}
