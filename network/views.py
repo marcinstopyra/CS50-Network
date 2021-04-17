@@ -86,15 +86,17 @@ def newPost(request):
     return JsonResponse({"message": "Post created successfully."}, status=201)
 
 def getPosts(request, section):
-    print("U MNIE DZIALA")
-    print(section)
+    print(f"U MNIE DZIALA --- {section}")
     if section == "allPosts":
         posts = Post.objects.order_by('-time').all()
-        return JsonResponse([post.serialize() for post in posts], safe=False)
-        
+
     elif section == "following":
         if request.user.is_authenticated == False:
             return JsonResponse({"message": "You are not logged in"}, status=400)
-        following = request.user.followers.all()
-        # posts = Post.objects.filter(creator=)
-        return JsonResponse({"message": "TODO"}, status=201)
+        current_user = request.user
+        following = current_user.following.all()
+        following = [follow.follow_to for follow in following]
+        print(following)
+        posts = Post.objects.filter(creator__in=following)      # 2x _ --https://stackoverflow.com/questions/9304908/how-can-i-filter-a-django-query-with-a-list-of-values
+    
+    return JsonResponse([post.serialize() for post in posts], safe=False)

@@ -4,6 +4,10 @@ function check(num) {
 }
 
 function displayPage(section) {
+    // clear page from posts previously shown and a newPost container
+    document.querySelector('#newPost-display').style.display = 'none';
+    document.querySelector('#posts-view').innerHTML = ''
+    
     if (section === 'profile') {
         displayProfile('me')
     } else {
@@ -16,7 +20,6 @@ function displayPosts(section) {
         document.querySelector('#newPost-display').style.display = 'block';
         document.querySelector('#newPost-Btn').onclick = newPost;
     }
-    console.log(`display ${section} posts TODO`)
     fetch(`/getPosts/${section}`)
     .then(response => response.json())
     .then(posts => {
