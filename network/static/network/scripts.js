@@ -7,9 +7,9 @@ function displayPage(section, requested_user=null) {
     // clear page from posts previously shown and a newPost container
     document.querySelector('#newPost-display').style.display = 'none';
     document.querySelector('#posts-view').innerHTML = ''
-    
+    document.querySelector('#profile-view').innerHTML = ''
     if (section === 'profile') {
-        displayProfile('me')
+        displayProfile(requested_user)
     } else {
         displayPosts(section);
 }
@@ -35,7 +35,7 @@ function displayPosts(section, profile=null) {
         element.setAttribute('value', `${post.id}`);
         element.innerHTML = `<br>
                             <div class='container-md' id='post-container'>
-                            <h4 class='post-creator' data-creator='${post.creator}'>${post.creator}</h4>
+                            <h4 class='post-creator' data-profile='${post.creator}'>${post.creator}</h4>
                             <p>${post.text}</p>
                             <p id='post-time'>${post.time}</p>
                             </div>`;
@@ -44,7 +44,7 @@ function displayPosts(section, profile=null) {
     }).then( () => {
         document.querySelectorAll('.post-creator').forEach(profileLink => {
             profileLink.onclick = function() {
-                check(this.dataset.creator);
+                displayProfile(this.dataset.profile);
             }   
         });
     });
@@ -53,8 +53,39 @@ function displayPosts(section, profile=null) {
 }
 
 function displayProfile(requested_user) {
+    // cleaning page
+    document.querySelector('#posts-view').innerHTML = ''
+    document.querySelector('#profile-view').innerHTML = ''
+    // getting currently logged user's username
+    const current_user = JSON.parse(document.getElementById('current_user').textContent);
+    if (requested_user === current_user) {
+        document.querySelector('#newPost-display').style.display = 'block';
+    } else {
+        document.querySelector('#newPost-display').style.display = 'none';
+    }
+
     console.log(`profile of: ${requested_user}`);
-    // if (requested_user == )
+    fetch(`profile/${requested_user}`)
+    .then(response => response.json())
+    .then(profile => {
+    var element = document.createElement('div');
+    console.log('check!')
+    element.innerHTML = `<br>
+                        <div class='container-md' id='profile-container'>
+                        <table>
+                            <tr>
+                                <td id='username-table'><h1>${profile.username}</h1></td>
+                                <td id='follow-table'>Followers:</td>
+                                <td id='number-table'>${profile.followers}</td>
+                                <td id='follow-table'>Following:</td>
+                                <td id='number-table'>${profile.following}</td>
+                            </tr>
+                        </table>
+                        </div>`;
+    document.querySelector('#profile-view').append(element);
+    });
+
+    displayPosts('profile', requested_user)
 }
 
 function newPost(event) {
@@ -83,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Use buttons to toggle between views
     document.querySelectorAll('.nav-link').forEach(button => { 
         button.onclick = function() { 
-            displayPage(this.dataset.section); 
+            displayPage(this.dataset.section, this.dataset.profile); 
         }});
     // document.querySelector('#allPosts-Nav-Btn').onclick = function() { displayPosts(this.dataset.section); }
     // document.querySelector('#following-Nav-Btn').onclick = function() { displayPosts(this.dataset.section); } 

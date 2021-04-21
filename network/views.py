@@ -112,3 +112,17 @@ def getUserPosts(request, requested_user):
     print(requested_userID)
     posts = Post.objects.filter(creator=requested_userID)
     return JsonResponse([post.serialize() for post in posts], safe=False)
+
+def getProfile(request, requested_username):
+    try:
+        requested_user = User.objects.get(username=requested_username)
+    except:
+        return JsonResponse({'message': 'requested user doesn\'t exist in database'})
+    following = requested_user.following.all().count()
+    followers = requested_user.following.all().count()
+    print('dddd:                     ',following, followers)
+    return JsonResponse({
+        "username": requested_username,
+        'followers': followers,
+        "following": following   
+    })
