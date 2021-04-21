@@ -3,7 +3,7 @@ function check(num) {
     console.log(`worked! ${num}`)
 }
 
-function displayPage(section) {
+function displayPage(section, requested_user=null) {
     // clear page from posts previously shown and a newPost container
     document.querySelector('#newPost-display').style.display = 'none';
     document.querySelector('#posts-view').innerHTML = ''
@@ -15,12 +15,18 @@ function displayPage(section) {
 }
 }
 
-function displayPosts(section) {
+function displayPosts(section, profile=null) {
     if (section === 'allPosts') {
         document.querySelector('#newPost-display').style.display = 'block';
         document.querySelector('#newPost-Btn').onclick = newPost;
     }
-    fetch(`/getPosts/${section}`)
+    if (section == 'profile'){
+        requestString = `/getUserPosts/${profile}`
+        
+    } else {
+        requestString = `/getPosts/${section}`
+    }
+    fetch(requestString)
     .then(response => response.json())
     .then(posts => {
       for (i = 0; i < posts.length; i++) {
@@ -35,17 +41,20 @@ function displayPosts(section) {
                             </div>`;
         document.querySelector('#posts-view').append(element);
         }
-    })
-    
-    document.querySelectorAll('.post-creator').forEach(profileLink => {
-        profileLink.onclick = function() {
-            check(this.dataset.creator);
-        }   
+    }).then( () => {
+        document.querySelectorAll('.post-creator').forEach(profileLink => {
+            profileLink.onclick = function() {
+                check(this.dataset.creator);
+            }   
+        });
     });
+    
+    
 }
 
 function displayProfile(requested_user) {
     console.log(`profile of: ${requested_user}`);
+    // if (requested_user == )
 }
 
 function newPost(event) {
@@ -85,3 +94,8 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
 
+// TODO: 
+// - Likes
+// - comments
+// - profiles
+// - history

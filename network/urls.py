@@ -8,5 +8,6 @@ urlpatterns = [
     path("logout", views.logout_view, name="logout"),
     path("register", views.register, name="register"),
     path("newPost", views.newPost, name="newPost"),
-    path("getPosts/<str:section>", views.getPosts, name="getPosts")
+    path("getPosts/<str:section>", views.getPosts, name="getPosts"),
+    path("getUserPosts/<str:requested_user>", views.getUserPosts, name='getUserPosts')
 ]

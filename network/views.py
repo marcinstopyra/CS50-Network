@@ -98,5 +98,17 @@ def getPosts(request, section):
         following = [follow.follow_to for follow in following]
         print(following)
         posts = Post.objects.filter(creator__in=following)      # 2x _ --https://stackoverflow.com/questions/9304908/how-can-i-filter-a-django-query-with-a-list-of-values
-    
+
+    return JsonResponse([post.serialize() for post in posts], safe=False)
+
+def getUserPosts(request, requested_user):
+    print(f"U MNIE DZIALA getUserPost--- {requested_user}")
+    if request.user.is_authenticated == False:
+            return JsonResponse({"message": "You are not logged in"}, status=400)
+    try:
+        requested_userID = User.objects.get(username=requested_user).id
+    except:
+        return JsonResponse({'message': 'requested user doesn\'t exist in database'})
+    print(requested_userID)
+    posts = Post.objects.filter(creator=requested_userID)
     return JsonResponse([post.serialize() for post in posts], safe=False)

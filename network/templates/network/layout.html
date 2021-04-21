@@ -16,14 +16,14 @@
     </head>
     <body>
 
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav id='navbar' class="navbar navbar-expand-lg navbar-light bg-light">
             <a class="navbar-brand" href="#">Network</a>
           
             <div>
               <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link"  data-section='profile' id='profile-Nav-Btn'><strong>{{ user.username }}</strong></a>
+                        <a class="nav-link"  data-section='profile' data-username='{{ user.username }}' id='profile-Nav-Btn'><strong>{{ user.username }}</strong></a>
                     </li>
                 {% endif %}
                 <li class="nav-item">
