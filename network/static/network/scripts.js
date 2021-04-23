@@ -5,7 +5,7 @@ function check(num) {
 
 function displayPage(section, requested_user=null) {
     // clear page from posts previously shown and a newPost container
-    document.querySelector('#newPost-display').style.display = 'none';
+    document.querySelector('#newPost-view').style.display = 'none';
     document.querySelector('#posts-view').innerHTML = ''
     document.querySelector('#profile-view').innerHTML = ''
     if (section === 'profile') {
@@ -17,8 +17,11 @@ function displayPage(section, requested_user=null) {
 
 function displayPosts(section, profile=null) {
     if (section === 'allPosts') {
-        document.querySelector('#newPost-display').style.display = 'block';
-        document.querySelector('#newPost-Btn').onclick = newPost;
+        const current_user = JSON.parse(document.getElementById('current_user').textContent);
+        if (current_user != ''){
+            document.querySelector('#newPost-view').style.display = 'block';
+            document.querySelector('#newPost-Btn').onclick = newPost;
+        }
     }
     if (section == 'profile'){
         requestString = `/getUserPosts/${profile}`
@@ -59,22 +62,31 @@ function displayProfile(requested_user) {
     // getting currently logged user's username
     const current_user = JSON.parse(document.getElementById('current_user').textContent);
     if (requested_user === current_user) {
-        document.querySelector('#newPost-display').style.display = 'block';
+        document.querySelector('#newPost-view').style.display = 'block';
     } else {
-        document.querySelector('#newPost-display').style.display = 'none';
+        document.querySelector('#newPost-view').style.display = 'none';
     }
-
-    console.log(`profile of: ${requested_user}`);
     fetch(`profile/${requested_user}`)
     .then(response => response.json())
     .then(profile => {
+    // setting a follow/unfollow button message
+    follow_action = '+Follow';
+    if (profile.is_followed){
+        follow_action = '-Unfollow';
+    }
+    console.log(profile.is_followed)
+
     var element = document.createElement('div');
-    console.log('check!')
     element.innerHTML = `<br>
                         <div class='container-md' id='profile-container'>
                         <table>
                             <tr>
                                 <td id='username-table'><h1>${profile.username}</h1></td>
+                                <td id='follow-table'>
+                                    <button type="button" class="btn btn-outline-secondary" data-follow_status='${profile.is_followed}' data-username='${profile.username}' id='follow-btn'>
+                                        ${follow_action}
+                                    </button>
+                                </td>
                                 <td id='follow-table'>Followers:</td>
                                 <td id='number-table'>${profile.followers}</td>
                                 <td id='follow-table'>Following:</td>
@@ -83,6 +95,15 @@ function displayProfile(requested_user) {
                         </table>
                         </div>`;
     document.querySelector('#profile-view').append(element);
+    }).then( () => { 
+        // Set follow button event listener (or hide the button if the user views his/her page)
+        if (requested_user === current_user){
+            document.querySelector('#follow-btn').style.display = 'none';
+        } else {
+            document.querySelector('#follow-btn').onclick = function() {
+                 followUnfollow(this.dataset.username, this.dataset.follow_status)
+            };
+        };
     });
 
     displayPosts('profile', requested_user)
@@ -108,7 +129,15 @@ function newPost(event) {
     displayPage('allPosts');
 }
     
-
+function followUnfollow(username_followed, follow_status) {
+    console.log(username_followed, follow_status);
+    fetch(`/profile/${username_followed}/${follow_status}`)
+    .then(response => response.json())
+    .then(message => {
+        console.log(message.message);
+        displayProfile(username_followed);
+    });  
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     // Use buttons to toggle between views
@@ -128,5 +157,6 @@ document.addEventListener('DOMContentLoaded', function () {
 // TODO: 
 // - Likes
 // - comments
-// - profiles
 // - history
+// - follows
+// - pagination

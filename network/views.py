@@ -67,7 +67,7 @@ def register(request):
         return render(request, "network/register.html")
 
 
-@csrf_exempt
+# @csrf_exempt
 @login_required
 def newPost(request):
     print("U MNIE DZIALA")
@@ -96,20 +96,17 @@ def getPosts(request, section):
         current_user = request.user
         following = current_user.following.all()
         following = [follow.follow_to for follow in following]
-        print(following)
         posts = Post.objects.filter(creator__in=following)      # 2x _ --https://stackoverflow.com/questions/9304908/how-can-i-filter-a-django-query-with-a-list-of-values
 
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 def getUserPosts(request, requested_user):
-    print(f"U MNIE DZIALA getUserPost--- {requested_user}")
     if request.user.is_authenticated == False:
             return JsonResponse({"message": "You are not logged in"}, status=400)
     try:
         requested_userID = User.objects.get(username=requested_user).id
     except:
         return JsonResponse({'message': 'requested user doesn\'t exist in database'})
-    print(requested_userID)
     posts = Post.objects.filter(creator=requested_userID)
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
@@ -119,10 +116,40 @@ def getProfile(request, requested_username):
     except:
         return JsonResponse({'message': 'requested user doesn\'t exist in database'})
     following = requested_user.following.all().count()
-    followers = requested_user.following.all().count()
-    print('dddd:                     ',following, followers)
+    followers = requested_user.followers.all().count()
+
+    # check if the current user follows the requested user,
+    # perform only if requested_user is different than currently logged user,
+    # if user check his/her own account set is_followed = True (request.user is a user currently logged in - reminder)
+    if requested_user != request.user:
+        is_followed = Follow.objects.filter(follow_from=request.user, follow_to=requested_user).exists()
+    else:
+        is_followed = True
     return JsonResponse({
         "username": requested_username,
         'followers': followers,
-        "following": following   
+        "following": following,
+        "is_followed": is_followed   
     })
+
+
+@login_required
+def followUnfollow(request, username_followed, follow_status):
+    try:
+        user_followed = User.objects.get(username=username_followed)
+    except:
+        return JsonResponse({'message': f'There is no user with username: {username_followed}'})
+    if request.user.username == user_followed:
+        return JsonResponse({'message': 'You cannot follow yourself'})
+    
+    user_followed = User.objects.get(username=username_followed)
+    print(user_followed)
+    if follow_status == 'true':
+        Follow.objects.filter(follow_from=request.user, follow_to=user_followed).delete()
+        return JsonResponse({'message': f'user {username_followed} succesfully unfollowed'})
+    else:
+        newFollow = Follow(follow_from=request.user, follow_to=user_followed)
+        newFollow.save()
+        return JsonResponse({'message': f'user {username_followed} succesfully followed'})
+    
+    

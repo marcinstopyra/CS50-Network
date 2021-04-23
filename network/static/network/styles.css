@@ -1,5 +1,8 @@
 #newPost-display {
     display: none;
+}
+
+#newPost-container {
     border-style: solid;
     border-width: 1px;
     border-color: rgb(202, 196, 196);
@@ -59,16 +62,20 @@ body {
 }
 
 #username-table {
-    width: 70%;
+    width: 30%;
 }
 
 #follow-table {
-    width: 10%;
-    text-align: left;
+    width: 15%;
+    text-align: center;
 }
 
 #number-table {
     width: 5%;
-    text-align: center;
+    text-align: left;
 }
 
+/* td {
+    border: solid;
+    border-width: 4px;
+} */

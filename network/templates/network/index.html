@@ -3,10 +3,11 @@
 {% block body %}
 
 <div id='profile-view'></div>
-    
+
+<div id="newPost-view">
     {% if user.is_authenticated %}
     <br>
-    <div class="container-md" id="newPost-display">
+    <div class="container-md" id="newPost-container">
         <h3><b>New Post</b></h3>
         <form id='new-post-form' method="POST">
             {% csrf_token %}
@@ -15,6 +16,8 @@
         </form>
     </div>
     {% endif %}
+</div>
+    
 
 <div id='posts-view'></div>
 
