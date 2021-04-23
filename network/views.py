@@ -67,10 +67,10 @@ def register(request):
         return render(request, "network/register.html")
 
 
-# @csrf_exempt
+@csrf_exempt
 @login_required
 def newPost(request):
-    print("U MNIE DZIALA")
+    print("U MNIE DZIALA new post")
     # Composing a new post must be via POST
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)
@@ -86,7 +86,7 @@ def newPost(request):
     return JsonResponse({"message": "Post created successfully."}, status=201)
 
 def getPosts(request, section):
-    print(f"U MNIE DZIALA --- {section}")
+    # print(f"U MNIE DZIALA --- {section}")
     if section == "allPosts":
         posts = Post.objects.order_by('-time').all()
 
@@ -97,8 +97,17 @@ def getPosts(request, section):
         following = current_user.following.all()
         following = [follow.follow_to for follow in following]
         posts = Post.objects.filter(creator__in=following)      # 2x _ --https://stackoverflow.com/questions/9304908/how-can-i-filter-a-django-query-with-a-list-of-values
-
-    return JsonResponse([post.serialize() for post in posts], safe=False)
+    # adding like and comments info to every post
+    postsJSON = []
+    for post in posts:
+        postJSON = post.serialize()
+        is_liked = Like.objects.filter(who=request.user, what=post).exists()
+        print('Polajkowane?       ', is_liked)
+        postJSON['is_liked'] = is_liked
+        postsJSON.append(postJSON)
+    # previous version without is_liked property 
+    # return JsonResponse([post.serialize() for post in posts], safe=False)
+    return JsonResponse(postsJSON, safe=False)
 
 def getUserPosts(request, requested_user):
     if request.user.is_authenticated == False:

@@ -41,7 +41,13 @@ function displayPosts(section, profile=null) {
                             <h4 class='post-creator' data-profile='${post.creator}'>${post.creator}</h4>
                             <p>${post.text}</p>
                             <p id='post-time'>${post.time}</p>
+                            <table id='comment-like-table'>
+                                <td class='comment-btn' data-post_id='${post.id}'>Comment</td>
+                                <td class='like-btn' data-post_id='${post.id}'>Like it!</td>
+                                <td class='show-comments-btn' data-post_id='${post.id}'>
+                            </table>
                             </div>`;
+        console.log(post.is_liked, 'Dorobic wizualnnosc!!');
         document.querySelector('#posts-view').append(element);
         }
     }).then( () => {
