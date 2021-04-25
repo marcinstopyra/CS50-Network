@@ -85,8 +85,9 @@ def newPost(request):
 
     return JsonResponse({"message": "Post created successfully."}, status=201)
 
-def getPosts(request, section):
+def getPosts(request, section, requested_user=''):
     # print(f"U MNIE DZIALA --- {section}")
+    print('tyyyyyp           ', type(section))
     if section == "allPosts":
         posts = Post.objects.order_by('-time').all()
 
@@ -97,6 +98,15 @@ def getPosts(request, section):
         following = current_user.following.all()
         following = [follow.follow_to for follow in following]
         posts = Post.objects.filter(creator__in=following)      # 2x _ --https://stackoverflow.com/questions/9304908/how-can-i-filter-a-django-query-with-a-list-of-values
+    elif section == 'profile':
+        if request.user.is_authenticated == False:
+            return JsonResponse({"message": "You are not logged in"}, status=400)
+        try:
+            requested_userID = User.objects.get(username=requested_user).id
+        except:
+            return JsonResponse({'message': 'requested user doesn\'t exist in database'})
+        posts = Post.objects.filter(creator=requested_userID)
+
     # adding like and comments info to every post
     postsJSON = []
     for post in posts:
@@ -109,15 +119,16 @@ def getPosts(request, section):
     # return JsonResponse([post.serialize() for post in posts], safe=False)
     return JsonResponse(postsJSON, safe=False)
 
-def getUserPosts(request, requested_user):
-    if request.user.is_authenticated == False:
-            return JsonResponse({"message": "You are not logged in"}, status=400)
-    try:
-        requested_userID = User.objects.get(username=requested_user).id
-    except:
-        return JsonResponse({'message': 'requested user doesn\'t exist in database'})
-    posts = Post.objects.filter(creator=requested_userID)
-    return JsonResponse([post.serialize() for post in posts], safe=False)
+#not needed anymore
+# def getUserPosts(request, requested_user):
+    #     if request.user.is_authenticated == False:
+    #             return JsonResponse({"message": "You are not logged in"}, status=400)
+    #     try:
+    #         requested_userID = User.objects.get(username=requested_user).id
+    #     except:
+    #         return JsonResponse({'message': 'requested user doesn\'t exist in database'})
+    #     posts = Post.objects.filter(creator=requested_userID)
+    #     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 def getProfile(request, requested_username):
     try:

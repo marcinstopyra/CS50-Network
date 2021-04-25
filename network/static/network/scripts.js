@@ -24,10 +24,10 @@ function displayPosts(section, profile=null) {
         }
     }
     if (section == 'profile'){
-        requestString = `/getUserPosts/${profile}`
+        requestString = `/getPosts/${section}/${profile}`
         
     } else {
-        requestString = `/getPosts/${section}`
+        requestString = `/getPosts/${section}/requested_user=%00`
     }
     fetch(requestString)
     .then(response => response.json())
@@ -43,7 +43,7 @@ function displayPosts(section, profile=null) {
                             <p id='post-time'>${post.time}</p>
                             <table id='comment-like-table'>
                                 <td class='comment-btn' data-post_id='${post.id}'>Comment</td>
-                                <td class='like-btn' data-post_id='${post.id}'>Like it!</td>
+                                <td class='like-btn' data-post_id='${post.id}' data-like_state='${post.is_liked}'>Like it!</td>
                                 <td class='show-comments-btn' data-post_id='${post.id}'>
                             </table>
                             </div>`;
@@ -54,6 +54,13 @@ function displayPosts(section, profile=null) {
         document.querySelectorAll('.post-creator').forEach(profileLink => {
             profileLink.onclick = function() {
                 displayProfile(this.dataset.profile);
+            }   
+    });
+    })
+        .then( () => {
+        document.querySelectorAll('.like-btn').forEach(likeBtn => {
+            likeBtn.onclick = function() {
+                LikeIt(this.dataset.like_state);
             }   
         });
     });
