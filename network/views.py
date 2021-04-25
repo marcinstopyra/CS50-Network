@@ -110,10 +110,12 @@ def getPosts(request, section, requested_user=''):
     postsJSON = []
     for post in posts:
         postJSON = post.serialize()
+        # check if the post is liked by user
         is_liked = Like.objects.filter(who=request.user, what=post).exists()
-        print(is_liked)
         postJSON['is_liked'] = is_liked
-        print(postJSON)
+        # count likes 
+        like_number = Like.objects.filter(what=post).count()
+        postJSON['like_number'] = like_number
         postsJSON.append(postJSON)
     # previous version without is_liked property 
     # return JsonResponse([post.serialize() for post in posts], safe=False)

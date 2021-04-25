@@ -43,7 +43,7 @@ function displayPosts(section, profile=null) {
                             <p id='post-time'>${post.time}</p>
                             <table id='comment-like-table'>
                                 <td class='comment-btn' data-post_id='${post.id}'>Comment</td>
-                                <td class='like-btn' id='like-btn-${post.id}' data-post_id='${post.id}' data-like_state='${post.is_liked}'>Like it!</td>
+                                <td class='like-btn' id='like-btn-${post.id}' data-post_id='${post.id}' data-like_state='${post.is_liked}'>Like it! (${post.like_number})</td>
                                 <td class='show-comments-btn' data-post_id='${post.id}'>
                             </table>
                             </div>`;
