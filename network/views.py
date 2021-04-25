@@ -111,7 +111,10 @@ def getPosts(request, section, requested_user=''):
     for post in posts:
         postJSON = post.serialize()
         # check if the post is liked by user
-        is_liked = Like.objects.filter(who=request.user, what=post).exists()
+        if request.user.is_authenticated:
+            is_liked = Like.objects.filter(who=request.user, what=post).exists()
+        else:
+            is_liked = False
         postJSON['is_liked'] = is_liked
         # count likes 
         like_number = Like.objects.filter(what=post).count()
@@ -177,17 +180,20 @@ def followUnfollow(request, username_followed, follow_status):
     
 def likeIt(request, liked_what):
     # check if requested post exists
-    try:
-        post = Post.objects.get(id=liked_what)
-    except Post.DoesNotExist:
-        return JsonResponse({"message": "Post not found."}, status=404)
+    if request.user.is_authenticated:
+        try:
+            post = Post.objects.get(id=liked_what)
+        except Post.DoesNotExist:
+            return JsonResponse({"message": "Post not found."}, status=404)
 
-    # check like state and then change it
-    if Like.objects.filter(who=request.user, what=post).exists():
-        Like.objects.get(who=request.user, what=post).delete()
-        return JsonResponse({"message": 'Post successfully unliked'})
+        # check like state and then change it
+        if Like.objects.filter(who=request.user, what=post).exists():
+            Like.objects.get(who=request.user, what=post).delete()
+            return JsonResponse({"message": 'Post successfully unliked'})
+        else:
+            like = Like(who=request.user, what=post)
+            like.save()
+            return JsonResponse({"message": 'Post successfully liked'})
     else:
-        like = Like(who=request.user, what=post)
-        like.save()
-        return JsonResponse({"message": 'Post successfully liked'})
+        return JsonResponse({"message": 'You are not logged in'})
 

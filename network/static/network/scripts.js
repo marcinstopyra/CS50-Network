@@ -43,10 +43,11 @@ function displayPosts(section, profile=null) {
                             <p id='post-time'>${post.time}</p>
                             <table id='comment-like-table'>
                                 <td class='comment-btn' data-post_id='${post.id}'>Comment</td>
-                                <td class='like-btn' id='like-btn-${post.id}' data-post_id='${post.id}' data-like_state='${post.is_liked}'>Like it! (${post.like_number})</td>
+                                <td class='like-btn' id='like-btn-${post.id}' data-post_id='${post.id}' data-like_state='${post.is_liked}' data-like_number='${post.like_number}'><div id='like-counter-${post.like_number}'></></td>
                                 <td class='show-comments-btn' data-post_id='${post.id}'>
                             </table>
                             </div>`;
+        element.querySelector(`#like-counter-${post.like_number}`).innerHTML = `Like it! (${post.like_number})`
         document.querySelector('#posts-view').append(element);
         // set the proper like button display
         setLikeDisplay(post.id, post.is_liked);
@@ -58,12 +59,26 @@ function displayPosts(section, profile=null) {
             }   
     });
     })
-        .then( () => {
+    .then( () => {
         document.querySelectorAll('.like-btn').forEach(likeBtn => {
             likeBtn.onclick = function() {
-                var like_state = (this.dataset.like_state === 'true');  // converting string to boolean
-                console.log(like_state)
-                likeIt(this.dataset.post_id, !like_state);
+                // check if the user is logged in
+                const isUserLoggedIn = JSON.parse(document.getElementById('isUserLoggedIn').textContent);
+                if (isUserLoggedIn) {
+                    var like_state = (this.dataset.like_state === 'true');  // converting string to boolean
+                    likeIt(this.dataset.post_id, !like_state);
+                    // update the like counter
+                    var like_number = parseInt(this.dataset.like_number)
+                    if (!like_state) {
+                        like_number++;
+                    } else {
+                        like_number--;
+                    }
+                    this.querySelector('div').innerHTML = `Like it! (${like_number})`;
+                    this.setAttribute('data-like_number', `${like_number}`);
+                } else {
+                    alert('You are not logged in')
+                }
             }   
         });
     });
