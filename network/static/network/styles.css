@@ -102,6 +102,6 @@ body {
 }
 
 .like-btn:hover {
-    font-weight: bold !important;
-    color: rgb(23, 123, 253) !important;
+    font-weight: bold;
+    color: rgb(23, 123, 253);
 }

@@ -87,7 +87,6 @@ def newPost(request):
 
 def getPosts(request, section, requested_user=''):
     # print(f"U MNIE DZIALA --- {section}")
-    print('tyyyyyp           ', type(section))
     if section == "allPosts":
         posts = Post.objects.order_by('-time').all()
 
@@ -112,8 +111,9 @@ def getPosts(request, section, requested_user=''):
     for post in posts:
         postJSON = post.serialize()
         is_liked = Like.objects.filter(who=request.user, what=post).exists()
-        print('Polajkowane?       ', is_liked)
+        print(is_liked)
         postJSON['is_liked'] = is_liked
+        print(postJSON)
         postsJSON.append(postJSON)
     # previous version without is_liked property 
     # return JsonResponse([post.serialize() for post in posts], safe=False)
@@ -173,3 +173,19 @@ def followUnfollow(request, username_followed, follow_status):
         return JsonResponse({'message': f'user {username_followed} succesfully followed'})
     
     
+def likeIt(request, liked_what):
+    # check if requested post exists
+    try:
+        post = Post.objects.get(id=liked_what)
+    except Post.DoesNotExist:
+        return JsonResponse({"message": "Post not found."}, status=404)
+
+    # check like state and then change it
+    if Like.objects.filter(who=request.user, what=post).exists():
+        Like.objects.get(who=request.user, what=post).delete()
+        return JsonResponse({"message": 'Post successfully unliked'})
+    else:
+        like = Like(who=request.user, what=post)
+        like.save()
+        return JsonResponse({"message": 'Post successfully liked'})
+

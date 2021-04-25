@@ -9,8 +9,7 @@ urlpatterns = [
     path("register", views.register, name="register"),
     path("newPost", views.newPost, name="newPost"),
     path("getPosts/<str:section>/<str:requested_user>", views.getPosts, name="getPosts"),
-    path("getUserPosts/<str:requested_user>", views.getUserPosts, name='getUserPosts'),
     path("profile/<str:requested_username>", views.getProfile, name='getProfile'),
-    path("profile/<str:username_followed>/<str:follow_status>", views.followUnfollow, name='followUnfollow')
-    # path("likeIt", views.likeIt, name='likeIt')
+    path("profile/<str:username_followed>/<str:follow_status>", views.followUnfollow, name='followUnfollow'),
+    path("likeIt/<str:liked_what>", views.likeIt, name='likeIt')
 ]

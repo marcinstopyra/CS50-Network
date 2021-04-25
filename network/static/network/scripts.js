@@ -43,12 +43,13 @@ function displayPosts(section, profile=null) {
                             <p id='post-time'>${post.time}</p>
                             <table id='comment-like-table'>
                                 <td class='comment-btn' data-post_id='${post.id}'>Comment</td>
-                                <td class='like-btn' data-post_id='${post.id}' data-like_state='${post.is_liked}'>Like it!</td>
+                                <td class='like-btn' id='like-btn-${post.id}' data-post_id='${post.id}' data-like_state='${post.is_liked}'>Like it!</td>
                                 <td class='show-comments-btn' data-post_id='${post.id}'>
                             </table>
                             </div>`;
-        console.log(post.is_liked, 'Dorobic wizualnnosc!!');
         document.querySelector('#posts-view').append(element);
+        // set the proper like button display
+        setLikeDisplay(post.id, post.is_liked);
         }
     }).then( () => {
         document.querySelectorAll('.post-creator').forEach(profileLink => {
@@ -60,7 +61,9 @@ function displayPosts(section, profile=null) {
         .then( () => {
         document.querySelectorAll('.like-btn').forEach(likeBtn => {
             likeBtn.onclick = function() {
-                LikeIt(this.dataset.like_state);
+                var like_state = (this.dataset.like_state === 'true');  // converting string to boolean
+                console.log(like_state)
+                likeIt(this.dataset.post_id, !like_state);
             }   
         });
     });
@@ -152,6 +155,30 @@ function followUnfollow(username_followed, follow_status) {
     });  
 }
 
+function likeIt(liked_what, like_state) {
+    fetch(`/likeIt/${liked_what}`).then(response => response.json()).then(response => {
+        console.log(response.message)
+    })
+    .then(() => {
+        setLikeDisplay(liked_what, like_state)
+    })
+}
+
+function setLikeDisplay(liked_what, like_state) {
+    console.log('setLike', like_state)
+    if (like_state) {
+        // change display to 'liked'
+        document.querySelector(`#like-btn-${liked_what}`).style.fontWeight = 'bold';
+        document.querySelector(`#like-btn-${liked_what}`).style.color = 'rgb(23, 123, 253)';
+        document.querySelector(`#like-btn-${liked_what}`).setAttribute("data-like_state", "true");
+    } else {
+        document.querySelector(`#like-btn-${liked_what}`).style.fontWeight = 'normal';
+        document.querySelector(`#like-btn-${liked_what}`).style.color = 'grey';
+        document.querySelector(`#like-btn-${liked_what}`).setAttribute("data-like_state", "false");
+    }
+
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // Use buttons to toggle between views
     document.querySelectorAll('.nav-link').forEach(button => { 
@@ -165,6 +192,8 @@ document.addEventListener('DOMContentLoaded', function () {
     //By default - load All posts
     displayPage('allPosts');
   });
+
+
 
 
 // TODO: 
