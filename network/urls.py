@@ -1,7 +1,7 @@
 from django.urls import path
 
 from . import views
-
+ 
 urlpatterns = [
     path("", views.index, name="index"),
     path("login", views.login_view, name="login"),
@@ -13,3 +13,5 @@ urlpatterns = [
     path("profile/<str:username_followed>/<str:follow_status>", views.followUnfollow, name='followUnfollow'),
     path("likeIt/<str:liked_what>", views.likeIt, name='likeIt')
 ]
+
+handler404 = 'network.views.view_404'

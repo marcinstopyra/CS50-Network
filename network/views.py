@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -136,6 +136,7 @@ def getPosts(request, section, requested_user=''):
     #     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 def getProfile(request, requested_username):
+    print(requested_username)
     try:
         requested_user = User.objects.get(username=requested_username)
     except:
@@ -197,3 +198,7 @@ def likeIt(request, liked_what):
     else:
         return JsonResponse({"message": 'You are not logged in'})
 
+def view_404(request, exception=None):
+    # make a redirect to homepage
+    # you can use the name of url or just the plain link
+    return redirect('') # or redirect('name-of-index-url')

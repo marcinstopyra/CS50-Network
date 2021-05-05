@@ -3,14 +3,24 @@ function check(num) {
     console.log(`worked! ${num}`)
 }
 
+// When back arrow is clicked, show previous section
+window.onpopstate = function(event) {
+    console.log(event.state.section);
+    window.history.back();
+    window.history.forward();
+
+
+}
+
 function displayPage(section, requested_user=null) {
     // clear page from posts previously shown and a newPost container
     document.querySelector('#newPost-view').style.display = 'none';
     document.querySelector('#posts-view').innerHTML = ''
     document.querySelector('#profile-view').innerHTML = ''
     if (section === 'profile') {
-        displayProfile(requested_user)
+        displayProfile(requested_user);
     } else {
+        history.pushState({section: section}, "", `/${section}`);
         displayPosts(section);
 }
 }
@@ -87,6 +97,7 @@ function displayPosts(section, profile=null) {
 }
 
 function displayProfile(requested_user) {
+    history.pushState({section: 'profile', requested_user: requested_user}, "", `/profile/${requested_user}`);
     // cleaning page
     document.querySelector('#posts-view').innerHTML = ''
     document.querySelector('#profile-view').innerHTML = ''
@@ -97,7 +108,8 @@ function displayProfile(requested_user) {
     } else {
         document.querySelector('#newPost-view').style.display = 'none';
     }
-    fetch(`profile/${requested_user}`)
+
+    fetch(`/profile/${requested_user}`)
     .then(response => response.json())
     .then(profile => {
     // setting a follow/unfollow button message
@@ -105,7 +117,7 @@ function displayProfile(requested_user) {
     if (profile.is_followed){
         follow_action = '-Unfollow';
     }
-    console.log(profile.is_followed)
+    // console.log(profile.is_followed)
 
     var element = document.createElement('div');
     element.innerHTML = `<br>
@@ -180,7 +192,7 @@ function likeIt(liked_what, like_state) {
 }
 
 function setLikeDisplay(liked_what, like_state) {
-    console.log('setLike', like_state)
+    // console.log('setLike', like_state)
     if (like_state) {
         // change display to 'liked'
         document.querySelector(`#like-btn-${liked_what}`).style.fontWeight = 'bold';
