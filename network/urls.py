@@ -11,7 +11,8 @@ urlpatterns = [
     path("getPosts/<str:section>/<str:requested_user>", views.getPosts, name="getPosts"),
     path("profile/<str:requested_username>", views.getProfile, name='getProfile'),
     path("profile/<str:username_followed>/<str:follow_status>", views.followUnfollow, name='followUnfollow'),
-    path("likeIt/<str:liked_what>", views.likeIt, name='likeIt')
+    path("likeIt/<str:liked_what>", views.likeIt, name='likeIt'),
+    path("editPost/<str:postId>", views.editPost, name='editPost')
 ]
 
 handler404 = 'network.views.view_404'

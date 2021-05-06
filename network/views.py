@@ -178,7 +178,7 @@ def followUnfollow(request, username_followed, follow_status):
         newFollow.save()
         return JsonResponse({'message': f'user {username_followed} succesfully followed'})
     
-    
+@login_required    
 def likeIt(request, liked_what):
     # check if requested post exists
     if request.user.is_authenticated:
@@ -197,6 +197,28 @@ def likeIt(request, liked_what):
             return JsonResponse({"message": 'Post successfully liked'})
     else:
         return JsonResponse({"message": 'You are not logged in'})
+
+@csrf_exempt
+@login_required
+def editPost(request, postId):
+    print(f'cokolwiek, {postId}')
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    
+    # load data from json
+    data = json.loads(request.body)
+    post = Post.objects.get(id=postId)
+    
+    if request.user == post.creator:
+        if  data['isDelete']:
+            post.delete()
+        else:
+            post.text = data['text']
+            post.save()
+    else:
+         return JsonResponse({"error": "You are not a post creator"}, status=400)
+
+    return JsonResponse({"message": "todo"}, status=201)
 
 def view_404(request, exception=None):
     # make a redirect to homepage

@@ -4,13 +4,11 @@ function check(num) {
 }
 
 // When back arrow is clicked, show previous section
-window.onpopstate = function(event) {
-    console.log(event.state.section);
-    window.history.back();
-    window.history.forward();
-
-
-}
+// window.onpopstate = function(event) {
+//     console.log(event.state.section);
+//     window.history.back();
+//     window.history.forward();
+// }
 
 function displayPage(section, requested_user=null) {
     // clear page from posts previously shown and a newPost container
@@ -20,14 +18,14 @@ function displayPage(section, requested_user=null) {
     if (section === 'profile') {
         displayProfile(requested_user);
     } else {
-        history.pushState({section: section}, "", `/${section}`);
+        // history.pushState({section: section}, "", `/${section}`);
         displayPosts(section);
 }
 }
 
 function displayPosts(section, profile=null) {
+    const current_user = JSON.parse(document.getElementById('current_user').textContent);
     if (section === 'allPosts') {
-        const current_user = JSON.parse(document.getElementById('current_user').textContent);
         if (current_user != ''){
             document.querySelector('#newPost-view').style.display = 'block';
             document.querySelector('#newPost-Btn').onclick = newPost;
@@ -47,7 +45,7 @@ function displayPosts(section, profile=null) {
         var element = document.createElement('div');
         element.setAttribute('value', `${post.id}`);
         element.innerHTML = `<br>
-                            <div class='container-md' id='post-container'>
+                            <div class='container-md' id='post-container-${post.id}'>
                             <h4 class='post-creator' data-profile='${post.creator}'>${post.creator}</h4>
                             <p>${post.text}</p>
                             <p id='post-time'>${post.time}</p>
@@ -56,8 +54,13 @@ function displayPosts(section, profile=null) {
                                 <td class='like-btn' id='like-btn-${post.id}' data-post_id='${post.id}' data-like_state='${post.is_liked}' data-like_number='${post.like_number}'><div id='like-counter-${post.like_number}'></></td>
                                 <td class='show-comments-btn' data-post_id='${post.id}'>
                             </table>
+                            <div id='edit-btn-div'></div>
                             </div>`;
         element.querySelector(`#like-counter-${post.like_number}`).innerHTML = `Like it! (${post.like_number})`
+        // add edit button if current user is a post creator
+        if (current_user === post.creator) {
+            element.querySelector('#edit-btn-div').innerHTML = `<button id='edit-btn' data-post_id='${post.id}' data-post_text='${post.text}'  type="button" class="btn btn-outline-secondary btn-sm">edit</button>`;
+        }
         document.querySelector('#posts-view').append(element);
         // set the proper like button display
         setLikeDisplay(post.id, post.is_liked);
@@ -91,13 +94,26 @@ function displayPosts(section, profile=null) {
                 }
             }   
         });
+    })
+    .then(() => {
+        // add edit post functionality
+        document.querySelectorAll('#edit-btn').forEach(editBtn => {
+            editBtn.onclick = function() {
+                document.querySelector(`#post-container-${this.dataset.post_id}`).innerHTML = `<h4>Edit Post</h4>
+                                                                                                    <textarea id='edit-post-text' cols=50 rows=5>${this.dataset.post_text}</textarea>
+                                                                                                    <button onclick=editPost(${this.dataset.post_id}) id="editPost-Btn" class="btn btn-outline-secondary">edit</button>
+                                                                                                    <button onclick=deletePost(${this.dataset.post_id}) id="deletePost-Btn" class="btn btn-outline-danger">delete</button>
+                                                                                                    <button onclick=location.reload() id="cancelEditPost-Btn" class="btn btn-outline-secondary">cancel</button>`;
+
+            }
+        });
     });
     
     
 }
 
 function displayProfile(requested_user) {
-    history.pushState({section: 'profile', requested_user: requested_user}, "", `/profile/${requested_user}`);
+    // history.pushState({section: 'profile', requested_user: requested_user}, "", `/profile/${requested_user}`);
     // cleaning page
     document.querySelector('#posts-view').innerHTML = ''
     document.querySelector('#profile-view').innerHTML = ''
@@ -171,7 +187,41 @@ function newPost(event) {
     document.querySelector('#post-text').value = '';
     displayPage('allPosts');
 }
-    
+
+function deletePost(post_id) {
+    console.log(`TODO:  I delete ${post_id}`);
+    fetch(`/editPost/${post_id}`, {
+        method: 'POST',
+        body: JSON.stringify({
+            'text': null,
+            'isDelete': true
+        })
+      }).then(() => {
+        location.reload();
+      });
+}
+
+function editPost(post_id) {
+    // // event.preventDefault();
+    console.log('edytuje see a co');
+
+    let post_text = document.querySelector('#edit-post-text').value.trim();
+    if (post_text === '') {
+        alert('The post cannot be empty');
+    } else {
+        fetch(`/editPost/${post_id}`, {
+            method: 'POST',
+            body: JSON.stringify({
+                'text': post_text,
+                'isDelete': false
+            })
+          }).then(() => {
+            location.reload();
+          });
+        
+    }
+}
+
 function followUnfollow(username_followed, follow_status) {
     console.log(username_followed, follow_status);
     fetch(`/profile/${username_followed}/${follow_status}`)
