@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 import json
 
 from .models import User, Post, Like, Comment, Follow
@@ -85,7 +86,7 @@ def newPost(request):
 
     return JsonResponse({"message": "Post created successfully."}, status=201)
 
-def getPosts(request, section, requested_user=''):
+def getPosts(request, section, requested_user='', pageNb='1'):
     # print(f"U MNIE DZIALA --- {section}")
     if section == "allPosts":
         posts = Post.objects.order_by('-time').all()
@@ -122,7 +123,23 @@ def getPosts(request, section, requested_user=''):
         postsJSON.append(postJSON)
     # previous version without is_liked property 
     # return JsonResponse([post.serialize() for post in posts], safe=False)
-    return JsonResponse(postsJSON, safe=False)
+    
+    # paginate the posts list (2nd arg in paginator is the number of posts per page)
+    paginator = Paginator(postsJSON, 5)
+    pageData = {}
+    pageData['page'] = pageNb
+    pageData['numberOfPages'] = paginator.num_pages
+    page = paginator.page(pageNb)
+    pageData['isNext'] = page.has_next()
+    pageData['isPrevious'] = page.has_previous()
+    pagePosts = page.object_list
+
+
+    #prepare page json
+    # pageData = {'number': 'number TODO', 'numberOfPages': 'number of pages TODO', 'isNext': 'isNext TODO', 'isPrevious': 'isPreviousTODO'}
+    response = {'page': pageData, 'posts': pagePosts}
+
+    return JsonResponse(response, safe=False)
 
 #not needed anymore
 # def getUserPosts(request, requested_user):

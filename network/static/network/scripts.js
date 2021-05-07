@@ -23,7 +23,7 @@ function displayPage(section, requested_user=null) {
 }
 }
 
-function displayPosts(section, profile=null) {
+function displayPosts(section, profile=null, page=1) {
     const current_user = JSON.parse(document.getElementById('current_user').textContent);
     if (section === 'allPosts') {
         if (current_user != ''){
@@ -32,14 +32,16 @@ function displayPosts(section, profile=null) {
         }
     }
     if (section == 'profile'){
-        requestString = `/getPosts/${section}/${profile}`
+        requestString = `/getPosts/${section}/${profile}/${page}`
         
     } else {
-        requestString = `/getPosts/${section}/requested_user=%00`
+        requestString = `/getPosts/${section}/requested_user=%00/${page}`
     }
     fetch(requestString)
     .then(response => response.json())
-    .then(posts => {
+    .then(response => {
+      posts = response.posts
+      console.log(`numer strony: ${response.page}`)
       for (i = 0; i < posts.length; i++) {
         var post = posts[i];
         var element = document.createElement('div');
