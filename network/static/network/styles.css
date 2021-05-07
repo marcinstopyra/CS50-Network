@@ -29,7 +29,8 @@ textarea {
 
 #newPostBtn {
     text-align: right;
-}
+} 
+/* cos chyba poszlo nie tak */
 
 .nav-link {
     cursor: pointer !important;
@@ -112,4 +113,11 @@ body {
     position: absolute;
     top: 8px;
     right: 16px;
+}
+
+#pagination-block {
+    position: relative;
+    width: 20%;
+    left: 40%;
+    top: 5%;
 }

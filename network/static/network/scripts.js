@@ -10,38 +10,35 @@ function check(num) {
 //     window.history.forward();
 // }
 
-function displayPage(section, requested_user=null) {
+function displayPage(section, requested_user='%00', page=1) {
     // clear page from posts previously shown and a newPost container
     document.querySelector('#newPost-view').style.display = 'none';
     document.querySelector('#posts-view').innerHTML = ''
     document.querySelector('#profile-view').innerHTML = ''
     if (section === 'profile') {
-        displayProfile(requested_user);
+        displayProfile(requested_user, page);
     } else {
         // history.pushState({section: section}, "", `/${section}`);
-        displayPosts(section);
+        displayPosts(section, requested_user, page);
 }
 }
 
-function displayPosts(section, profile=null, page=1) {
+function displayPosts(section, profile, page=1) {
     const current_user = JSON.parse(document.getElementById('current_user').textContent);
+
     if (section === 'allPosts') {
         if (current_user != ''){
             document.querySelector('#newPost-view').style.display = 'block';
             document.querySelector('#newPost-Btn').onclick = newPost;
         }
     }
-    if (section == 'profile'){
-        requestString = `/getPosts/${section}/${profile}/${page}`
-        
-    } else {
-        requestString = `/getPosts/${section}/requested_user=%00/${page}`
-    }
+    
+    requestString = `/getPosts/${section}/${profile}/${page}`;
     fetch(requestString)
     .then(response => response.json())
     .then(response => {
-      posts = response.posts
-      console.log(`numer strony: ${response.page}`)
+      var posts = response.posts;
+      var page = response.page;
       for (i = 0; i < posts.length; i++) {
         var post = posts[i];
         var element = document.createElement('div');
@@ -67,6 +64,7 @@ function displayPosts(section, profile=null, page=1) {
         // set the proper like button display
         setLikeDisplay(post.id, post.is_liked);
         }
+        setPagination(parseInt(page.page), page.isPrevious, page.isNext, section, profile);
     }).then( () => {
         document.querySelectorAll('.post-creator').forEach(profileLink => {
             profileLink.onclick = function() {
@@ -114,7 +112,7 @@ function displayPosts(section, profile=null, page=1) {
     
 }
 
-function displayProfile(requested_user) {
+function displayProfile(requested_user, page=1) {
     // history.pushState({section: 'profile', requested_user: requested_user}, "", `/profile/${requested_user}`);
     // cleaning page
     document.querySelector('#posts-view').innerHTML = ''
@@ -167,7 +165,7 @@ function displayProfile(requested_user) {
         };
     });
 
-    displayPosts('profile', requested_user)
+    displayPosts('profile', requested_user, page)
 }
 
 function newPost(event) {
@@ -258,11 +256,31 @@ function setLikeDisplay(liked_what, like_state) {
 
 }
 
+function setPagination(pageNumber, isPrevious, isNext, currentSection, currentProfile) {
+    if (isPrevious) {
+        document.querySelector('#previous-page-btn').setAttribute("class", 'page-item');
+        document.querySelector('#previous-page-btn').onclick = function() { displayPage(currentSection, currentProfile, pageNumber-1); }
+    }
+    else{
+        document.querySelector('#previous-page-btn').setAttribute("class", 'page-item disabled');
+        document.querySelector('#previous-page-btn').onclick = null;
+    }
+    if (isNext) {
+        document.querySelector('#next-page-btn').setAttribute("class", 'page-item');
+        document.querySelector('#next-page-btn').onclick = function() { displayPage(currentSection, currentProfile, (pageNumber+1)); }
+    }
+    else {
+        document.querySelector('#next-page-btn').setAttribute("class", 'page-item disabled');
+        document.querySelector('#next-page-btn').onclick = null;
+    }
+    document.querySelector('#page-number').innerHTML = `${pageNumber}`;    
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // Use buttons to toggle between views
     document.querySelectorAll('.nav-link').forEach(button => { 
         button.onclick = function() { 
-            displayPage(this.dataset.section, this.dataset.profile); 
+            displayPage(this.dataset.section, this.dataset.profile, 1); 
         }});
     // document.querySelector('#allPosts-Nav-Btn').onclick = function() { displayPosts(this.dataset.section); }
     // document.querySelector('#following-Nav-Btn').onclick = function() { displayPosts(this.dataset.section); } 
