@@ -9,7 +9,7 @@
     <br>
     <div class="container-md" id="newPost-container">
         <h3><b>New Post</b></h3>
-        <form id='new-post-form' method="POST">
+        <form id='new-post-form' method="POST"> 
             {% csrf_token %}
             <textarea id='post-text' placeholder="Your new post..." cols=50 rows=5></textarea>
             <button type="submit" id="newPost-Btn" class="btn btn-outline-secondary">Post</button>

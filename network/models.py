@@ -25,6 +25,14 @@ class Comment(models.Model):
     commented_post = models.ForeignKey(Post, on_delete=models.CASCADE, default=1)
     text = models.CharField(max_length=300)
 
+    def serialize(self):
+        return {
+            'id': self.id,
+            'author': self.comment_author.username,
+            'post': self.commented_post.id,
+            'text': self.text
+        }
+
 class Like(models.Model):
     who = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     what = models.ForeignKey(Post, on_delete=models.CASCADE, default=1)

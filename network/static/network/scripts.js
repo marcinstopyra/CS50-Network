@@ -25,7 +25,6 @@ function displayPage(section, requested_user='%00', page=1) {
 
 function displayPosts(section, profile, page=1) {
     const current_user = JSON.parse(document.getElementById('current_user').textContent);
-
     if (section === 'allPosts') {
         if (current_user != ''){
             document.querySelector('#newPost-view').style.display = 'block';
@@ -34,6 +33,7 @@ function displayPosts(section, profile, page=1) {
     }
     
     requestString = `/getPosts/${section}/${profile}/${page}`;
+    console.log(requestString);
     fetch(requestString)
     .then(response => response.json())
     .then(response => {
@@ -49,30 +49,35 @@ function displayPosts(section, profile, page=1) {
                             <p>${post.text}</p>
                             <p id='post-time'>${post.time}</p>
                             <table id='comment-like-table'>
-                                <td class='comment-btn' data-post_id='${post.id}'>Comment</td>
-                                <td class='like-btn' id='like-btn-${post.id}' data-post_id='${post.id}' data-like_state='${post.is_liked}' data-like_number='${post.like_number}'><div id='like-counter-${post.like_number}'></></td>
-                                <td class='show-comments-btn' data-post_id='${post.id}'>
+                                <td class='comment-btn' data-post_id='${post.id}' data-comment_number='${post.comment_number}'><div id='comment-counter-${post.id}'></div></td>
+                                <td class='like-btn' id='like-btn-${post.id}' data-post_id='${post.id}' data-like_state='${post.is_liked}' data-like_number='${post.like_number}'><div id='like-counter-${post.id}'></div></td>
                             </table>
+                            <button id='edit-btn' data-post_id='${post.id}' data-post_text='${post.text}'  type="button" class="btn btn-outline-secondary btn-sm">edit</button>                            
+                            <div class='comment-section' id='comment-section-${post.id}' data-post_id='${post.id}' data-comment_number='${post.comment_number}></div>
                             <div id='edit-btn-div'></div>
                             </div>`;
-        element.querySelector(`#like-counter-${post.like_number}`).innerHTML = `Like it! (${post.like_number})`
+        
+        // set comment and like counters
+        element.querySelector(`#comment-counter-${post.id}`).innerHTML = `Comments (${post.comment_number})`;
+        element.querySelector(`#like-counter-${post.id}`).innerHTML = `Like it! (${post.like_number})`;
         // add edit button if current user is a post creator
         if (current_user === post.creator) {
-            element.querySelector('#edit-btn-div').innerHTML = `<button id='edit-btn' data-post_id='${post.id}' data-post_text='${post.text}'  type="button" class="btn btn-outline-secondary btn-sm">edit</button>`;
+            element.querySelector(`#edit-btn`).style.display = 'block';
         }
+        
         document.querySelector('#posts-view').append(element);
         // set the proper like button display
         setLikeDisplay(post.id, post.is_liked);
         }
         setPagination(parseInt(page.page), page.isPrevious, page.isNext, section, profile);
-    }).then( () => {
+    }).then( () => { // add hyperref to post author's profile 
         document.querySelectorAll('.post-creator').forEach(profileLink => {
             profileLink.onclick = function() {
                 displayProfile(this.dataset.profile);
             }   
     });
     })
-    .then( () => {
+    .then( () => { // set event listener on like-btn
         document.querySelectorAll('.like-btn').forEach(likeBtn => {
             likeBtn.onclick = function() {
                 // check if the user is logged in
@@ -95,8 +100,7 @@ function displayPosts(section, profile, page=1) {
             }   
         });
     })
-    .then(() => {
-        // add edit post functionality
+    .then(() => { // add edit post functionality
         document.querySelectorAll('#edit-btn').forEach(editBtn => {
             editBtn.onclick = function() {
                 document.querySelector(`#post-container-${this.dataset.post_id}`).innerHTML = `<h4>Edit Post</h4>
@@ -105,6 +109,34 @@ function displayPosts(section, profile, page=1) {
                                                                                                     <button onclick=deletePost(${this.dataset.post_id}) id="deletePost-Btn" class="btn btn-outline-danger">delete</button>
                                                                                                     <button onclick=location.reload() id="cancelEditPost-Btn" class="btn btn-outline-secondary">cancel</button>`;
 
+            }
+        });
+    })
+    .then(() => { // add comment section toggle 
+        document.querySelectorAll('.comment-btn').forEach(commentBtn => {
+            commentBtn.onclick = function() {
+                const isUserLoggedIn = JSON.parse(document.getElementById('isUserLoggedIn').textContent);
+                // clear comment section
+                commentSection = document.querySelector(`#comment-section-${this.dataset.post_id}`);
+                commentSection.innerHTML = '';
+                // toggle view of comment section onclick
+                if (commentSection.style.display == 'block') {
+                    commentSection.style.display = 'none';
+                } else if(parseInt(commentSection.dataset.comment_number) > 0 || isUserLoggedIn) {
+                    commentSection.style.display = 'block';
+                }
+                var newCommentForm = document.createElement('div');
+
+                
+                if (isUserLoggedIn) {
+                    newCommentForm.innerHTML = `<div class="container" id="newComment-container">
+                                                <textarea id='newComment-text-${this.dataset.post_id}' placeholder="comment here" rows='2'></textarea>
+                                                <button onclick=addComment(${this.dataset.post_id}) id="newPost-Btn" class="btn btn-outline-secondary btn-sm">comment</button>
+                                            </div>`;
+                    commentSection.append(newCommentForm);
+                }
+                displayComments(commentSection);
+                
             }
         });
     });
@@ -169,7 +201,7 @@ function displayProfile(requested_user, page=1) {
 }
 
 function newPost(event) {
-    event.preventDefault();
+    // event.preventDefault();
 
     let post_text = document.querySelector('#post-text').value.trim();
     console.log(post_text);
@@ -183,7 +215,7 @@ function newPost(event) {
             })
           })
     }
-
+    
     document.querySelector('#post-text').value = '';
     displayPage('allPosts');
 }
@@ -276,6 +308,56 @@ function setPagination(pageNumber, isPrevious, isNext, currentSection, currentPr
     document.querySelector('#page-number').innerHTML = `${pageNumber}`;    
 }
 
+function addComment(post_id) {
+    let commentText = document.querySelector(`#newComment-text-${post_id}`).value.trim();
+    if (commentText === '') {
+        alert('The comment cannot be empty');
+    } else {
+        fetch(`/addComment/${post_id}`, {
+            method: 'POST',
+            body: JSON.stringify({
+                'text': commentText
+                // 'isDelete': false
+            })
+          }).then(() => {
+            location.reload();
+          });
+    }
+}
+
+function displayComments(commentSection) {
+    const current_user = JSON.parse(document.getElementById('current_user').textContent);
+    post_id = commentSection.dataset.post_id;
+    fetch(`getComments/${post_id}`)
+    .then(response => response.json())
+    .then(response => {
+        comments = response;
+        for (i = 0; i < comments.length; i++) {
+            comment = comments[i];
+            var commentElement = document.createElement('div');
+            commentElement.innerHTML = `<br>
+                                        <div class='comment-container'>
+                                            <b>${comment.author}</b>
+                                            <p>${comment.text}</p>
+                                            <div class='delete-comment-btn'></div>
+                                        </div>`;
+            if (comment.author == current_user){
+                commentElement.querySelector(`.delete-comment-btn`).innerHTML = `<button type="button" onclick=deleteComment(${comment.id}) class="btn btn-danger btn-sm" data-comment_id=${comment.id} id='delete-${comment.id}-comment'>delete</button>`
+                // commentElement.querySelector(`#delete-${comment.id}-comment`).onclick = deleteComment(comment.id);
+            }
+            commentSection.append(commentElement);
+        }
+
+        
+        
+    });
+}
+
+function deleteComment(comment_id) {
+    console.log('Delete comment', comment_id);
+    // fetch(`deleteComment/${comment_id}`);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // Use buttons to toggle between views
     document.querySelectorAll('.nav-link').forEach(button => { 
@@ -293,9 +375,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-// TODO: 
-// - Likes
-// - comments
-// - history
-// - follows
-// - pagination
+

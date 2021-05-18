@@ -71,7 +71,6 @@ def register(request):
 @csrf_exempt
 @login_required
 def newPost(request):
-    print("U MNIE DZIALA new post")
     # Composing a new post must be via POST
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)
@@ -87,7 +86,6 @@ def newPost(request):
     return JsonResponse({"message": "Post created successfully."}, status=201)
 
 def getPosts(request, section, requested_user='', pageNb='1'):
-    # print(f"U MNIE DZIALA --- {section}")
     if section == "allPosts":
         posts = Post.objects.order_by('-time').all()
 
@@ -97,7 +95,7 @@ def getPosts(request, section, requested_user='', pageNb='1'):
         current_user = request.user
         following = current_user.following.all()
         following = [follow.follow_to for follow in following]
-        posts = Post.objects.filter(creator__in=following)      # 2x _ --https://stackoverflow.com/questions/9304908/how-can-i-filter-a-django-query-with-a-list-of-values
+        posts = Post.objects.order_by('-time').filter(creator__in=following)      # 2x _ --https://stackoverflow.com/questions/9304908/how-can-i-filter-a-django-query-with-a-list-of-values
     elif section == 'profile':
         if request.user.is_authenticated == False:
             return JsonResponse({"message": "You are not logged in"}, status=400)
@@ -120,7 +118,12 @@ def getPosts(request, section, requested_user='', pageNb='1'):
         # count likes 
         like_number = Like.objects.filter(what=post).count()
         postJSON['like_number'] = like_number
+        # count comments
+        comment_number = Comment.objects.filter(commented_post=post).count()
+        postJSON['comment_number'] = comment_number
+        # add post data to post list
         postsJSON.append(postJSON)
+
     # previous version without is_liked property 
     # return JsonResponse([post.serialize() for post in posts], safe=False)
     
@@ -218,7 +221,6 @@ def likeIt(request, liked_what):
 @csrf_exempt
 @login_required
 def editPost(request, postId):
-    print(f'cokolwiek, {postId}')
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)
     
@@ -235,7 +237,50 @@ def editPost(request, postId):
     else:
          return JsonResponse({"error": "You are not a post creator"}, status=400)
 
-    return JsonResponse({"message": "todo"}, status=201)
+    return JsonResponse({"message": "post edited succesfully"}, status=201)
+
+@csrf_exempt
+@login_required
+def addComment(request, postId):
+     # Composing a new comment must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    # load model data and save it to Post model object
+    data = json.loads(request.body)
+    post = Post.objects.get(id=postId)
+    comment = Comment(
+        comment_author = request.user,
+        commented_post = post,
+        text = data.get("text", "")
+    )
+    comment.save()
+    print(comment.text)
+    return JsonResponse({"message": "Comment created successfully."}, status=201)
+
+def getComments(request, postId):
+    post = Post.objects.get(id=postId)
+    comments = Comment.objects.filter(commented_post=post)
+    commentsJSON = []
+    for comment in comments:
+        commentJSON = comment.serialize()
+        if comment.comment_author == request.user:
+            commentJSON['editActive'] = True
+        else:
+            commentJSON['editActive'] = False
+        commentsJSON.append(commentJSON)
+
+    return JsonResponse(commentsJSON, safe=False)
+
+@login_required
+def deleteComment(request, commentId):
+    comment = Comment.objects.get(id=commentId)
+    if comment.comment_author == request.user:
+        comment.delete()
+    else:
+        return JsonResponse({"error": "You are not a comment creator"}, status=400)
+    
+    return JsonResponse({"message": "comment deleted succesfully"}, status=201)
 
 def view_404(request, exception=None):
     # make a redirect to homepage
