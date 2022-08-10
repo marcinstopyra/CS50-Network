@@ -201,7 +201,7 @@ function displayProfile(requested_user, page=1) {
 }
 
 function newPost(event) {
-    event.preventDefault();
+    // event.preventDefault();
 
     let post_text = document.querySelector('#post-text').value.trim();
     console.log(post_text);
